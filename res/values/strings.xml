@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">51zwd</string>
+    <string name="taobao_item_id_label">Taobao Item Id:</string>
+    <string name="upload_button_label">一键上传</string>
 </resources>
