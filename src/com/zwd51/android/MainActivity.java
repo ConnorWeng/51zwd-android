@@ -28,6 +28,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 Log.d(TAG, "upload button clicked and taobaoItemId is " + editTextTaobaoItemId.getText());
+                ((MainApplication) getApplicationContext()).getAndroidClient().authorize(MainActivity.this);
             }
         });
     }
