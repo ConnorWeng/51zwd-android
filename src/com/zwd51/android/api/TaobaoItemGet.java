@@ -17,7 +17,8 @@ public class TaobaoItemGet {
                 "title", "desc", "pic_url",
                 "sku", "item_weight", "property_alias",
                 "price", "item_img.url", "cid",
-                "nick", "props_name", "prop_img"}));
+                "nick", "props_name", "prop_img",
+                "num"}));
         params.addParam("num_iid", id);
         client.api(params, userId, listener, true);
     }
