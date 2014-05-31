@@ -8,8 +8,8 @@ import com.zwd51.android.model.TaobaoItem;
  * Created by Connor on 5/31/14.
  */
 public class MainApplication extends Application {
-    private static final String appKey = "21794410";
-    private static final String appSecret = "4e6b2aeaf906196804bea8e2584ee985";
+    private static final String appKey = "21795154";//"21794410";
+    private static final String appSecret = "ffce9b10e71970dacdd3cca2c7b2e0e3";//"4e6b2aeaf906196804bea8e2584ee985";
     private static final String redirectURI = "com.zwd51://";
     private TopAndroidClient androidClient;
     private Long userId;
