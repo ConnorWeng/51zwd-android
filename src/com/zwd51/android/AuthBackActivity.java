@@ -10,18 +10,18 @@ import com.taobao.top.android.auth.*;
  */
 public class AuthBackActivity extends AuthActivity {
     private static final String TAG = "AuthBackActivity";
-    private Long userId;
-    private String nick;
+    private MainApplication app;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        app = (MainApplication) getApplicationContext();
         super.onCreate(savedInstanceState);
-        ((MainApplication) getApplicationContext()).getCurrentTaobaoItem().upload();
+        app.getCurrentTaobaoItem().fillFields();
     }
 
     @Override
     protected TopAndroidClient getTopAndroidClient() {
-        return ((MainApplication) getApplicationContext()).getAndroidClient();
+        return app.getAndroidClient();
     }
 
     @Override
@@ -30,15 +30,16 @@ public class AuthBackActivity extends AuthActivity {
             @Override
             public void onComplete(AccessToken accessToken) {
                 Log.d(TAG, "callbacked");
-                String id = accessToken.getAdditionalInformation().get(AccessToken.KEY_SUB_TAOBAO_USER_ID);
-                if (id == null) {
-                    id = accessToken.getAdditionalInformation().get(AccessToken.KEY_TAOBAO_USER_ID);
+                String userId = accessToken.getAdditionalInformation().get(AccessToken.KEY_SUB_TAOBAO_USER_ID);
+                if (userId == null) {
+                    userId = accessToken.getAdditionalInformation().get(AccessToken.KEY_TAOBAO_USER_ID);
                 }
-                userId = Long.parseLong(id);
-                nick = accessToken.getAdditionalInformation().get(AccessToken.KEY_SUB_TAOBAO_USER_NICK);
+                app.setUserId(Long.parseLong(userId));
+                String nick = accessToken.getAdditionalInformation().get(AccessToken.KEY_SUB_TAOBAO_USER_NICK);
                 if (nick == null) {
                     nick = accessToken.getAdditionalInformation().get(AccessToken.KEY_TAOBAO_USER_NICK);
                 }
+                app.setNick(nick);
                 Log.d(TAG, "userId:" + userId);
                 Log.d(TAG, "nick:" + nick);
             }

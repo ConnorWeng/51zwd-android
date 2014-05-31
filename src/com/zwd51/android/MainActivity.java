@@ -30,7 +30,7 @@ public class MainActivity extends Activity {
             public void onClick(View v) {
                 Log.d(TAG, "upload button clicked and taobaoItemId is " + editTextTaobaoItemId.getText());
                 MainApplication app = (MainApplication) getApplicationContext();
-                app.setCurrentTaobaoItem(new TaobaoItem(editTextTaobaoItemId.getText().toString()));
+                app.setCurrentTaobaoItem(new TaobaoItem(app, editTextTaobaoItemId.getText().toString()));
                 app.getAndroidClient().authorize(MainActivity.this);
             }
         });
