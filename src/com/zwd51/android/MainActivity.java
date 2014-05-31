@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import com.zwd51.android.model.TaobaoItem;
 
 public class MainActivity extends Activity {
     private static final String TAG = "MainActivity";
@@ -28,7 +29,9 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 Log.d(TAG, "upload button clicked and taobaoItemId is " + editTextTaobaoItemId.getText());
-                ((MainApplication) getApplicationContext()).getAndroidClient().authorize(MainActivity.this);
+                MainApplication app = (MainApplication) getApplicationContext();
+                app.setCurrentTaobaoItem(new TaobaoItem(editTextTaobaoItemId.getText().toString()));
+                app.getAndroidClient().authorize(MainActivity.this);
             }
         });
     }
