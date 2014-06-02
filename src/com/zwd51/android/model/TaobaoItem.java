@@ -1,8 +1,11 @@
 package com.zwd51.android.model;
 
+import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Toast;
 import com.taobao.top.android.api.ApiError;
 import com.taobao.top.android.api.TopApiListener;
+import com.zwd51.android.AuthBackActivity;
 import com.zwd51.android.MainApplication;
 import com.zwd51.android.api.TaobaoItemAdd;
 import com.zwd51.android.api.TaobaoItemGet;
@@ -10,6 +13,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,6 +30,8 @@ public class TaobaoItem {
     private MainApplication app;
     private String id;
     private Map<String, String> fields = new HashMap<String, String>();
+    private String picUrl;
+    private AuthBackActivity authBackActivity;
 
     public TaobaoItem(MainApplication app, String id) {
         this.app = app;
@@ -41,7 +52,6 @@ public class TaobaoItem {
                     fields.put("property_alias", itemJSONObject.getString("property_alias"));
                     fields.put("cid", itemJSONObject.getString("cid"));
                     fields.put("props", makeProps(itemJSONObject.getString("props_name")));
-                    // fields.put("picUrl", itemJSONObject.getString("pic_url"));
                     fields.put("num", itemJSONObject.getString("num"));
                     fields.put("type", "fixed");
                     fields.put("stuff_status", "new");
@@ -55,9 +65,15 @@ public class TaobaoItem {
                     fields.put("has_showcase", "false");
                     fields.put("has_discount", "false");
                     makeSkus(itemJSONObject.getJSONObject("skus").getJSONArray("sku"));
+                    picUrl = itemJSONObject.getString("pic_url");
                     // TODO item_imgs
                     Log.d(TAG, itemJSONObject.getJSONObject("item_imgs").getJSONArray("item_img").toString());
-                    upload();
+                    authBackActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            upload();
+                        }
+                    });
                 } catch (JSONException e) {
                     Log.e(TAG, e.getMessage());
                 }
@@ -76,22 +92,9 @@ public class TaobaoItem {
     }
 
     private void upload() {
-        TaobaoItemAdd.invoke(app.getAndroidClient(), app.getUserId(), fields, new TopApiListener() {
-            @Override
-            public void onComplete(JSONObject json) {
-                Log.d(TAG, json.toString());
-            }
-
-            @Override
-            public void onError(ApiError error) {
-                Log.e(TAG, error.getErrorCode() + error.getSubCode() + error.getMsg() + error.getSubMsg());
-            }
-
-            @Override
-            public void onException(Exception e) {
-                Log.e(TAG, e.getMessage());
-            }
-        });
+        UploadTask task = new UploadTask();
+        File file = new File(app.getFilesDir(), System.currentTimeMillis() + ".jpg");
+        task.execute(picUrl, file.getAbsolutePath());
     }
 
     private void makeSkus(JSONArray skus) {
@@ -133,5 +136,87 @@ public class TaobaoItem {
             sb.deleteCharAt(sb.length() - 1);
         }
         return sb.toString();
+    }
+
+    public void setAuthBackActivity(AuthBackActivity authBackActivity) {
+        this.authBackActivity = authBackActivity;
+    }
+
+    private class UploadTask extends AsyncTask<String, Integer, String> {
+        private String outputPath;
+
+        @Override
+        protected String doInBackground(String... params) {
+            HttpURLConnection connection = null;
+            InputStream inputStream = null;
+            FileOutputStream outputStream = null;
+            try {
+                String downloadUrl = params[0];
+                URL url = new URL(downloadUrl);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.connect();
+                if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+
+                }
+                int fileLength = connection.getContentLength();
+                inputStream = connection.getInputStream();
+                outputPath = params[1];
+                outputStream = new FileOutputStream(outputPath);
+                byte[] data = new byte[4096];
+                long total = 0;
+                int count;
+                while ((count = inputStream.read(data)) != -1) {
+                    if (isCancelled()) {
+                        inputStream.close();
+                        return null;
+                    }
+                    total += count;
+                    if (fileLength > 0) publishProgress((int) (total * 100 / fileLength));
+                    outputStream.write(data, 0, count);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, e.getMessage());
+                return e.getMessage();
+            } finally {
+                try {
+                    if (outputStream != null) {
+                        outputStream.close();
+                    }
+                    if (inputStream != null) {
+                        inputStream.close();
+                    }
+                } catch (IOException ignored) {
+                }
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            if (result != null) {
+                Toast.makeText(app.getApplicationContext(), "Upload item picture:" + result, Toast.LENGTH_LONG);
+            } else {
+                Log.d(TAG, "download picture successfully:" + outputPath);
+                TaobaoItemAdd.invoke(app.getAndroidClient(), app.getUserId(), fields, outputPath, new TopApiListener() {
+                    @Override
+                    public void onComplete(JSONObject json) {
+                        Log.d(TAG, json.toString());
+                    }
+
+                    @Override
+                    public void onError(ApiError error) {
+                        Log.e(TAG, error.getErrorCode() + error.getSubCode() + error.getMsg() + error.getSubMsg());
+                    }
+
+                    @Override
+                    public void onException(Exception e) {
+                        Log.e(TAG, e.getMessage());
+                    }
+                });
+            }
+        }
     }
 }

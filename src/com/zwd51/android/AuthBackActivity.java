@@ -16,6 +16,7 @@ public class AuthBackActivity extends AuthActivity {
     public void onCreate(Bundle savedInstanceState) {
         app = (MainApplication) getApplicationContext();
         super.onCreate(savedInstanceState);
+        app.getCurrentTaobaoItem().setAuthBackActivity(this);
         app.getCurrentTaobaoItem().fillFieldsAndUpload();
     }
 
