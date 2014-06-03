@@ -195,15 +195,32 @@ public class TaobaoItem {
         }
 
         @Override
-        protected void onPostExecute(String result) {
+        protected void onPostExecute(final String result) {
             if (result != null) {
-                Toast.makeText(app.getApplicationContext(), "Upload item picture:" + result, Toast.LENGTH_LONG);
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(app.getApplicationContext(), "Upload item picture:" + result, Toast.LENGTH_LONG);
+                    }
+                });
             } else {
                 Log.d(TAG, "download picture successfully:" + outputPath);
                 TaobaoItemAdd.invoke(app.getAndroidClient(), app.getUserId(), fields, outputPath, new TopApiListener() {
                     @Override
                     public void onComplete(JSONObject json) {
                         Log.d(TAG, json.toString());
+                        try {
+                            if (json.getJSONObject("item_add_response") != null) {
+                                activity.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(app.getApplicationContext(), "Upload success!", Toast.LENGTH_LONG);
+                                    }
+                                });
+                            }
+                        } catch (JSONException e) {
+                            Log.e(TAG, e.getMessage());
+                        }
                     }
 
                     @Override
