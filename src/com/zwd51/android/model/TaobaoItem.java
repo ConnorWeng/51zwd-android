@@ -1,11 +1,11 @@
 package com.zwd51.android.model;
 
+import android.app.Activity;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
 import com.taobao.top.android.api.ApiError;
 import com.taobao.top.android.api.TopApiListener;
-import com.zwd51.android.AuthBackActivity;
 import com.zwd51.android.MainApplication;
 import com.zwd51.android.api.TaobaoItemAdd;
 import com.zwd51.android.api.TaobaoItemGet;
@@ -31,7 +31,7 @@ public class TaobaoItem {
     private String id;
     private Map<String, String> fields = new HashMap<String, String>();
     private String picUrl;
-    private AuthBackActivity authBackActivity;
+    private Activity activity;
 
     public TaobaoItem(MainApplication app, String id) {
         this.app = app;
@@ -68,7 +68,7 @@ public class TaobaoItem {
                     picUrl = itemJSONObject.getString("pic_url");
                     // TODO item_imgs
                     Log.d(TAG, itemJSONObject.getJSONObject("item_imgs").getJSONArray("item_img").toString());
-                    authBackActivity.runOnUiThread(new Runnable() {
+                    activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             upload();
@@ -138,8 +138,8 @@ public class TaobaoItem {
         return sb.toString();
     }
 
-    public void setAuthBackActivity(AuthBackActivity authBackActivity) {
-        this.authBackActivity = authBackActivity;
+    public void setAuthBackActivity(Activity activity) {
+        this.activity = activity;
     }
 
     private class UploadTask extends AsyncTask<String, Integer, String> {
