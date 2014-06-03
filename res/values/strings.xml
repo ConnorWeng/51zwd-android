@@ -3,4 +3,8 @@
     <string name="app_name">51zwd</string>
     <string name="taobao_item_id_label">Taobao Item Id:</string>
     <string name="upload_button_label">一键上传</string>
+    <string name="upload">上传</string>
+    <string name="really_upload">上传该宝贝吗？</string>
+    <string name="yes">是</string>
+    <string name="no">否</string>
 </resources>

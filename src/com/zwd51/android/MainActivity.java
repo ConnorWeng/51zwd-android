@@ -1,5 +1,7 @@
 package com.zwd51.android;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -68,15 +70,26 @@ public class MainActivity extends AuthActivity {
         buttonUpload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d(TAG, "upload button clicked and taobaoItemId is " + editTextTaobaoItemId.getText());
-                app.setCurrentTaobaoItem(new TaobaoItem(app, editTextTaobaoItemId.getText().toString()));
-                if (app.getNick() == null) {
-                    app.getAndroidClient().authorize(MainActivity.this);
-                    MainActivity.this.finish();
-                } else {
-                    app.getCurrentTaobaoItem().setAuthBackActivity(MainActivity.this);
-                    app.getCurrentTaobaoItem().fillFieldsAndUpload();
-                }
+                new AlertDialog.Builder(MainActivity.this)
+                        .setIcon(android.R.drawable.ic_dialog_info)
+                        .setTitle(R.string.upload)
+                        .setMessage(R.string.really_upload)
+                        .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Log.d(TAG, "upload button clicked and taobaoItemId is " + editTextTaobaoItemId.getText());
+                                app.setCurrentTaobaoItem(new TaobaoItem(app, editTextTaobaoItemId.getText().toString()));
+                                if (app.getNick() == null) {
+                                    app.getAndroidClient().authorize(MainActivity.this);
+                                    MainActivity.this.finish();
+                                } else {
+                                    app.getCurrentTaobaoItem().setAuthBackActivity(MainActivity.this);
+                                    app.getCurrentTaobaoItem().fillFieldsAndUpload();
+                                }
+                            }
+                        })
+                        .setNegativeButton(R.string.no, null)
+                        .show();
             }
         });
     }
