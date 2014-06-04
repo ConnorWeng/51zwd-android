@@ -41,6 +41,14 @@ public class TaobaoItem {
         this.id = id;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public String getPicUrl() {
         return picUrl;
     }
@@ -63,11 +71,17 @@ public class TaobaoItem {
             @Override
             public void onComplete(JSONObject json) {
                 Log.d(TAG, json.toString());
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(app.getApplicationContext(), "获取宝贝信息成功，正在下载主图", Toast.LENGTH_LONG).show();
+                    }
+                });
                 try {
                     JSONObject itemJSONObject = json.getJSONObject("item_get_response").getJSONObject("item");
                     fields.put("title", itemJSONObject.getString("title"));
                     fields.put("price", itemJSONObject.getString("price"));
-                    fields.put("desc", itemJSONObject.getString("desc"));
+                    fields.put("desc", "Just for test, not buy");//itemJSONObject.getString("desc"));
                     fields.put("property_alias", itemJSONObject.getString("property_alias"));
                     fields.put("cid", itemJSONObject.getString("cid"));
                     fields.put("props", makeProps(itemJSONObject.getString("props_name")));
@@ -176,6 +190,8 @@ public class TaobaoItem {
                 connection.connect();
                 if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
                     // FIXME: handle error and return
+                    Log.e(TAG, "Response Message:" + connection.getResponseMessage());
+                    return connection.getResponseMessage();
                 }
                 int fileLength = connection.getContentLength();
                 inputStream = connection.getInputStream();
@@ -219,11 +235,12 @@ public class TaobaoItem {
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(app.getApplicationContext(), "Upload item picture:" + result, Toast.LENGTH_LONG);
+                        Toast.makeText(app.getApplicationContext(), "Upload item picture:" + result, Toast.LENGTH_LONG).show();
                     }
                 });
             } else {
                 Log.d(TAG, "download picture successfully:" + outputPath);
+                Toast.makeText(app.getApplicationContext(), "下载主图成功，开始上传宝贝", Toast.LENGTH_LONG).show();
                 TaobaoItemAdd.invoke(app.getAndroidClient(), app.getUserId(), fields, outputPath, new TopApiListener() {
                     @Override
                     public void onComplete(JSONObject json) {
@@ -233,7 +250,7 @@ public class TaobaoItem {
                                 activity.runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        Toast.makeText(app.getApplicationContext(), "Upload success!", Toast.LENGTH_LONG);
+                                        Toast.makeText(app.getApplicationContext(), "上传宝贝成功!", Toast.LENGTH_LONG).show();
                                     }
                                 });
                             }

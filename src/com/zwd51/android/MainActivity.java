@@ -94,9 +94,11 @@ public class MainActivity extends AuthActivity {
                                 Log.d(TAG, "upload button clicked and taobaoItemId is " + editTextTaobaoItemId.getText());
                                 app.setCurrentTaobaoItem(new TaobaoItem(app, editTextTaobaoItemId.getText().toString()));
                                 if (app.getNick() == null) {
+                                    Toast.makeText(getApplicationContext(), "还未授权，请授权后回来重新上传", Toast.LENGTH_LONG).show();
                                     app.getAndroidClient().authorize(MainActivity.this);
                                     MainActivity.this.finish();
                                 } else {
+                                    Toast.makeText(getApplicationContext(), "准备上传，请稍候", Toast.LENGTH_LONG).show();
                                     app.getCurrentTaobaoItem().setAuthBackActivity(MainActivity.this);
                                     app.getCurrentTaobaoItem().fillFieldsAndUpload();
                                 }
@@ -114,6 +116,14 @@ public class MainActivity extends AuthActivity {
         listView = (ListView) findViewById(R.id.listView);
         TaobaoItemProvider itemProvider = new TaobaoItemProvider();
         listView.setAdapter(new ItemArrayAdapter(getApplicationContext(), R.layout.list_item, itemProvider.getData()));
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                final TaobaoItem item = (TaobaoItem) parent.getItemAtPosition(position);
+                editTextTaobaoItemId.setText(item.getId());
+                buttonUpload.performClick();
+            }
+        });
     }
 
     private class ItemArrayAdapter extends ArrayAdapter<TaobaoItem> {
