@@ -33,9 +33,28 @@ public class TaobaoItem {
     private String picUrl;
     private Activity activity;
 
+    public TaobaoItem() {
+    }
+
     public TaobaoItem(MainApplication app, String id) {
         this.app = app;
         this.id = id;
+    }
+
+    public String getPicUrl() {
+        return picUrl;
+    }
+
+    public void setPicUrl(String picUrl) {
+        this.picUrl = picUrl;
+    }
+
+    public Map<String, String> getFields() {
+        return fields;
+    }
+
+    public void setFields(Map<String, String> fields) {
+        this.fields = fields;
     }
 
     public void fillFieldsAndUpload() {
@@ -156,7 +175,7 @@ public class TaobaoItem {
                 connection = (HttpURLConnection) url.openConnection();
                 connection.connect();
                 if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-
+                    // FIXME: handle error and return
                 }
                 int fileLength = connection.getContentLength();
                 inputStream = connection.getInputStream();

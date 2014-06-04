@@ -17,5 +17,9 @@
             android:layout_height="wrap_content"
             android:text="@string/upload_button_label"
             android:id="@id/buttonUpload" android:layout_gravity="center_horizontal"/>
+    <ListView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/listView" android:layout_gravity="center_horizontal"/>
 </LinearLayout>
 
