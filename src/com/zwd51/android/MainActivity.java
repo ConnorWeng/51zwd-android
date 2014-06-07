@@ -1,10 +1,15 @@
 package com.zwd51.android;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,8 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
-import com.taobao.top.android.TopAndroidClient;
-import com.taobao.top.android.auth.*;
+import com.taobao.top.android.api.WebUtils;
 import com.zwd51.android.data.TaobaoItemProvider;
 import com.zwd51.android.model.TaobaoItem;
 
@@ -22,9 +26,11 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class MainActivity extends AuthActivity {
+public class MainActivity extends Activity {
     private static final String TAG = "MainActivity";
     private EditText editTextTaobaoItemId;
     private Button buttonUpload;
@@ -36,48 +42,25 @@ public class MainActivity extends AuthActivity {
      */
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        app = (MainApplication) getApplicationContext();
         super.onCreate(savedInstanceState);
+        app = (MainApplication) getApplicationContext();
+        handleCallback();
         setContentView(R.layout.main);
         initView();
         bindEventListener();
     }
 
-    @Override
-    protected TopAndroidClient getTopAndroidClient() {
-        return app.getAndroidClient();
-    }
-
-    @Override
-    protected AuthorizeListener getAuthorizeListener() {
-        return new AuthorizeListener() {
-            @Override
-            public void onComplete(AccessToken accessToken) {
-                Log.d(TAG, "callbacked");
-                String userId = accessToken.getAdditionalInformation().get(AccessToken.KEY_SUB_TAOBAO_USER_ID);
-                if (userId == null) {
-                    userId = accessToken.getAdditionalInformation().get(AccessToken.KEY_TAOBAO_USER_ID);
-                }
-                app.setUserId(Long.parseLong(userId));
-                String nick = accessToken.getAdditionalInformation().get(AccessToken.KEY_SUB_TAOBAO_USER_NICK);
-                if (nick == null) {
-                    nick = accessToken.getAdditionalInformation().get(AccessToken.KEY_TAOBAO_USER_NICK);
-                }
-                app.setNick(nick);
-                Log.d(TAG, "userId:" + userId);
-                Log.d(TAG, "nick:" + nick);
+    private void handleCallback() {
+        Intent intent = getIntent();
+        Uri uri = intent.getData();
+        if (uri != null) {
+            String fragment = uri.getFragment();
+            if (fragment.split("=").length > 1) {
+                String accessToken = uri.getFragment().split("=")[1];
+                Log.d(TAG, "access_token:" + accessToken);
+                app.setAccessToken(accessToken);
             }
-
-            @Override
-            public void onError(AuthError e) {
-                Log.e(TAG, e.getErrorDescription());
-            }
-
-            @Override
-            public void onAuthException(AuthException e) {
-                Log.e(TAG, e.getMessage());
-            }
-        };
+        }
     }
 
     private void bindEventListener() {
@@ -93,14 +76,17 @@ public class MainActivity extends AuthActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 Log.d(TAG, "upload button clicked and taobaoItemId is " + editTextTaobaoItemId.getText());
                                 app.setCurrentTaobaoItem(new TaobaoItem(app, editTextTaobaoItemId.getText().toString()));
-                                if (app.getNick() == null) {
+                                if (app.getAccessToken() == null) {
                                     Toast.makeText(getApplicationContext(), "还未授权，请授权后回来重新上传", Toast.LENGTH_LONG).show();
-                                    app.getAndroidClient().authorize(MainActivity.this);
+                                    authorize();
                                     MainActivity.this.finish();
                                 } else {
                                     Toast.makeText(getApplicationContext(), "准备上传，请稍候", Toast.LENGTH_LONG).show();
-                                    app.getCurrentTaobaoItem().setAuthBackActivity(MainActivity.this);
-                                    app.getCurrentTaobaoItem().fillFieldsAndUpload();
+                                    try {
+                                        app.getCurrentTaobaoItem().uploadViaWeb();
+                                    } catch (IOException e) {
+                                        Log.e(TAG, e.getMessage());
+                                    }
                                 }
                             }
                         })
@@ -124,6 +110,40 @@ public class MainActivity extends AuthActivity {
                 buttonUpload.performClick();
             }
         });
+    }
+
+    public void authorize() {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("response_type", "code");
+        params.put("client_id", "21357243");
+        params.put("redirect_uri", "http://121.196.142.10/index.php");
+        params.put("state", "android");
+        params.put("view", "web");
+        String str = "";
+        try {
+            URL url = WebUtils.buildGetUrl("https://oauth.taobao.com/authorize", params, null);
+            str = url.toString();
+            Log.d(TAG, "auth uri:" + str);
+        } catch (IOException e) {
+            throw new RuntimeException(e);// won't happen
+        }
+        Uri uri = Uri.parse(str);
+        Intent it = new Intent(Intent.ACTION_VIEW, uri);
+        try {
+            ComponentName name = new ComponentName("com.android.browser",
+                    "com.android.browser.BrowserActivity");
+            // 判断系统自带浏览器是否安装
+            getApplicationContext().getPackageManager().getActivityInfo(name,
+                    PackageManager.GET_INTENT_FILTERS);
+            it.setComponent(name);
+        } catch (Exception e) {
+            /*
+             * if an activity with the given class name can not be found on the
+			 * system
+			 */
+            Log.e(TAG, e.getMessage(), e);
+        }
+        this.startActivity(it);
     }
 
     private class ItemArrayAdapter extends ArrayAdapter<TaobaoItem> {

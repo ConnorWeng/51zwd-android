@@ -14,7 +14,16 @@ public class MainApplication extends Application {
     private TopAndroidClient androidClient;
     private Long userId;
     private String nick;
+    private String accessToken;
     private TaobaoItem currentTaobaoItem = new TaobaoItem(null, "null item");
+
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
 
     @Override
     public void onCreate() {
