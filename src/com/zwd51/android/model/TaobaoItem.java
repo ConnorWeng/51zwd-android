@@ -9,6 +9,7 @@ import com.taobao.top.android.api.TopApiListener;
 import com.zwd51.android.MainApplication;
 import com.zwd51.android.api.TaobaoItemAdd;
 import com.zwd51.android.api.TaobaoItemGet;
+import com.zwd51.android.api.TaobaoItemImgUpload;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -253,6 +254,29 @@ public class TaobaoItem {
                                         Toast.makeText(app.getApplicationContext(), "上传宝贝成功!", Toast.LENGTH_LONG).show();
                                     }
                                 });
+                                String numIid = json.getJSONObject("item_add_response").getJSONObject("item").getString("num_iid");
+                                TaobaoItemImgUpload.invoke(app.getAndroidClient(), app.getUserId(), numIid, outputPath, new TopApiListener() {
+                                    @Override
+                                    public void onComplete(JSONObject json) {
+                                        activity.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Toast.makeText(app.getApplicationContext(), "更新主图成功!", Toast.LENGTH_LONG).show();
+                                            }
+                                        });
+                                    }
+
+                                    @Override
+                                    public void onError(ApiError error) {
+                                        Log.e(TAG, error.getMsg() + error.getSubMsg());
+                                    }
+
+                                    @Override
+                                    public void onException(Exception e) {
+                                        Log.e(TAG, e.getMessage());
+                                    }
+                                });
+
                             } else if (json.getJSONObject("error_response") != null) {
                                 activity.runOnUiThread(new Runnable() {
                                     @Override
