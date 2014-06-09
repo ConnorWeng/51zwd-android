@@ -243,7 +243,7 @@ public class TaobaoItem {
                 Toast.makeText(app.getApplicationContext(), "下载主图成功，开始上传宝贝", Toast.LENGTH_LONG).show();
                 TaobaoItemAdd.invoke(app.getAndroidClient(), app.getUserId(), fields, outputPath, new TopApiListener() {
                     @Override
-                    public void onComplete(JSONObject json) {
+                    public void onComplete(final JSONObject json) {
                         Log.d(TAG, json.toString());
                         try {
                             if (json.getJSONObject("item_add_response") != null) {
@@ -251,6 +251,17 @@ public class TaobaoItem {
                                     @Override
                                     public void run() {
                                         Toast.makeText(app.getApplicationContext(), "上传宝贝成功!", Toast.LENGTH_LONG).show();
+                                    }
+                                });
+                            } else if (json.getJSONObject("error_response") != null) {
+                                activity.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            Toast.makeText(app.getApplicationContext(), json.getJSONObject("error_response").getString("sub_msg"), Toast.LENGTH_LONG).show();
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
                                     }
                                 });
                             }
