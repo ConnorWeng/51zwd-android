@@ -2,10 +2,8 @@ package com.zwd51.android.api;
 
 import com.taobao.top.android.TopAndroidClient;
 import com.taobao.top.android.TopParameters;
-import com.taobao.top.android.api.FileItem;
 import com.taobao.top.android.api.TopApiListener;
 
-import java.io.File;
 import java.util.Map;
 
 /**
@@ -16,9 +14,11 @@ public class TaobaoItemAdd {
         TopParameters params = new TopParameters();
         params.setMethod("taobao.item.add");
         params.setParams(fields);
+        /*
         File file = new File(outputPath);
         FileItem image = new FileItem(file);
         params.addAttachment("image", image);
+        */
         client.api(params, userId, listener, true);
     }
 }

@@ -11,7 +11,6 @@ import java.util.HashMap;
 public class TaobaoItemProvider {
     public ArrayList<TaobaoItem> getData() {
         ArrayList<TaobaoItem> taobaoItems = new ArrayList<TaobaoItem>();
-        taobaoItems.add(makeTaobaoItem("37958104675", "8160 2014女装夏季欧根纱蕾丝蓬蓬无袖打底连衣裙", "http://img01.taobaocdn.com/bao/uploaded/i3/T1w28AFOFaXXXXXXXX_!!0-item_pic.jpg_180x180.jpg", "40.00"));
         taobaoItems.add(makeTaobaoItem("39227804357", "2014新款品韩版潮露肩女t恤短袖短裤休闲两件套装名媛小香风6621#", "http://img01.taobaocdn.com/bao/uploaded/i4/T1vdvUFM8cXXXXXXXX_!!0-item_pic.jpg_200x200.jpg", "38.00"));
         taobaoItems.add(makeTaobaoItem("38675410825", "2014韩国春班服情侣装夏装 沙滩条纹短袖t恤衫大码女裙连衣裙6801", "http://img01.taobaocdn.com/bao/uploaded/i4/T1.Z98FQ8aXXXXXXXX_!!0-item_pic.jpg_200x200.jpg", "16.00"));
         taobaoItems.add(makeTaobaoItem("39302044607", "2014夏新款链条斜肩弹力收腰连衣裙", "http://img03.taobaocdn.com/bao/uploaded/i3/2000128480/T2iOZrXilbXXXXXXXX-2000128480.jpg_400x400.jpg", "52.00"));

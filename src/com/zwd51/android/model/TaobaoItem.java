@@ -81,7 +81,7 @@ public class TaobaoItem {
                     JSONObject itemJSONObject = json.getJSONObject("item_get_response").getJSONObject("item");
                     fields.put("title", itemJSONObject.getString("title"));
                     fields.put("price", itemJSONObject.getString("price"));
-                    fields.put("desc", "Just for test, not buy");//itemJSONObject.getString("desc"));
+                    fields.put("desc", itemJSONObject.getString("desc"));
                     fields.put("property_alias", itemJSONObject.getString("property_alias"));
                     fields.put("cid", itemJSONObject.getString("cid"));
                     fields.put("props", makeProps(itemJSONObject.getString("props_name")));
