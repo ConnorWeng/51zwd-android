@@ -7,16 +7,20 @@
     <TextView
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:gravity="center"
             android:text="@string/taobao_item_id_label"/>
     <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@id/editTextTaobaoItemId" android:text="39193092582"/>
+            android:id="@id/editTextTaobaoItemId" android:text="39193092582"
+            android:visibility="gone"/>
     <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/upload_button_label"
-            android:id="@id/buttonUpload" android:layout_gravity="center_horizontal"/>
+            android:id="@id/buttonUpload"
+            android:layout_gravity="center_horizontal"
+            android:visibility="gone"/>
     <ListView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
