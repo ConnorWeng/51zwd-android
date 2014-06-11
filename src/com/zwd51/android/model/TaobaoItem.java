@@ -110,8 +110,14 @@ public class TaobaoItem {
             }
 
             @Override
-            public void onError(ApiError error) {
+            public void onError(final ApiError error) {
                 Log.e(TAG, error.getErrorCode() + error.getSubCode() + error.getMsg() + error.getSubMsg());
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(app.getApplicationContext(), error.getErrorCode() + error.getSubCode() + error.getMsg() + error.getSubMsg(), Toast.LENGTH_LONG).show();
+                    }
+                });
             }
 
             @Override
