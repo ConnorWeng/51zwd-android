@@ -9,17 +9,13 @@ import com.taobao.top.android.api.TopApiListener;
 import com.zwd51.android.MainApplication;
 import com.zwd51.android.api.TaobaoItemAdd;
 import com.zwd51.android.api.TaobaoItemGet;
-import com.zwd51.android.api.TaobaoItemImgUpload;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -75,7 +71,7 @@ public class TaobaoItem {
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(app.getApplicationContext(), "获取宝贝信息成功，正在下载主图", Toast.LENGTH_LONG).show();
+                        Toast.makeText(app.getApplicationContext(), "获取宝贝信息成功", Toast.LENGTH_LONG).show();
                     }
                 });
                 try {
@@ -126,9 +122,58 @@ public class TaobaoItem {
     }
 
     private void upload() {
-        UploadTask task = new UploadTask();
-        File file = new File(app.getFilesDir(), System.currentTimeMillis() + ".jpg");
-        task.execute(picUrl, file.getAbsolutePath());
+        Toast.makeText(app.getApplicationContext(), "开始上传宝贝", Toast.LENGTH_LONG).show();
+        TaobaoItemAdd.invoke(app.getAndroidClient(), app.getUserId(), fields, id, getImageBytes(), new TopApiListener() {
+            @Override
+            public void onComplete(final JSONObject json) {
+                Log.d(TAG, json.toString());
+                try {
+                    if (json.getJSONObject("item_add_response") != null) {
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(app.getApplicationContext(), "上传宝贝成功!", Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    } else if (json.getJSONObject("error_response") != null) {
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    Toast.makeText(app.getApplicationContext(), json.getJSONObject("error_response").getString("sub_msg"), Toast.LENGTH_LONG).show();
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                    }
+                } catch (JSONException e) {
+                    Log.e(TAG, e.getMessage());
+                }
+            }
+
+            @Override
+            public void onError(final ApiError error) {
+                Log.e(TAG, error.getErrorCode() + error.getSubCode() + error.getMsg() + error.getSubMsg());
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(app.getApplicationContext(), error.getErrorCode() + error.getSubCode() + error.getMsg() + error.getSubMsg(), Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onException(final Exception e) {
+                Log.e(TAG, e.getMessage());
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(app.getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+        });
     }
 
     private void makeSkus(JSONArray skus) {
@@ -176,135 +221,35 @@ public class TaobaoItem {
         this.activity = activity;
     }
 
-    private class UploadTask extends AsyncTask<String, Integer, String> {
-        private String outputPath;
-
-        @Override
-        protected String doInBackground(String... params) {
-            HttpURLConnection connection = null;
-            InputStream inputStream = null;
-            FileOutputStream outputStream = null;
-            try {
-                String downloadUrl = params[0];
-                URL url = new URL(downloadUrl);
-                connection = (HttpURLConnection) url.openConnection();
-                connection.connect();
-                if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                    // FIXME: handle error and return
-                    Log.e(TAG, "Response Message:" + connection.getResponseMessage());
-                    return connection.getResponseMessage();
-                }
-                int fileLength = connection.getContentLength();
-                inputStream = connection.getInputStream();
-                outputPath = params[1];
-                outputStream = new FileOutputStream(outputPath);
-                byte[] data = new byte[4096];
-                long total = 0;
-                int count;
-                while ((count = inputStream.read(data)) != -1) {
-                    if (isCancelled()) {
-                        inputStream.close();
-                        return null;
-                    }
-                    total += count;
-                    if (fileLength > 0) publishProgress((int) (total * 100 / fileLength));
-                    outputStream.write(data, 0, count);
-                }
-            } catch (Exception e) {
-                Log.e(TAG, e.getMessage());
-                return e.getMessage();
-            } finally {
+    private byte[] getImageBytes() {
+        InputStream inputStream = null;
+        ByteArrayOutputStream outputStream = null;
+        try {
+            inputStream = app.getAssets().open(id + ".jpg");
+            outputStream = new ByteArrayOutputStream();
+            byte[] buf = new byte[4096];
+            int ch;
+            while ((ch = inputStream.read(buf)) != -1) {
+                outputStream.write(buf, 0, ch);
+            }
+            return outputStream.toByteArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e(TAG, "getImageBytes error:" + e.getMessage());
+        } finally {
+            if (inputStream != null) {
                 try {
-                    if (outputStream != null) {
-                        outputStream.close();
-                    }
-                    if (inputStream != null) {
-                        inputStream.close();
-                    }
-                } catch (IOException ignored) {
-                }
-                if (connection != null) {
-                    connection.disconnect();
+                    inputStream.close();
+                } catch (IOException e) {
                 }
             }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(final String result) {
-            if (result != null) {
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(app.getApplicationContext(), "Upload item picture:" + result, Toast.LENGTH_LONG).show();
-                    }
-                });
-            } else {
-                Log.d(TAG, "download picture successfully:" + outputPath);
-                Toast.makeText(app.getApplicationContext(), "下载主图成功，开始上传宝贝", Toast.LENGTH_LONG).show();
-                TaobaoItemAdd.invoke(app.getAndroidClient(), app.getUserId(), fields, outputPath, new TopApiListener() {
-                    @Override
-                    public void onComplete(final JSONObject json) {
-                        Log.d(TAG, json.toString());
-                        try {
-                            if (json.getJSONObject("item_add_response") != null) {
-                                activity.runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Toast.makeText(app.getApplicationContext(), "上传宝贝成功!", Toast.LENGTH_LONG).show();
-                                    }
-                                });
-                                String numIid = json.getJSONObject("item_add_response").getJSONObject("item").getString("num_iid");
-                                TaobaoItemImgUpload.invoke(app.getAndroidClient(), app.getUserId(), numIid, outputPath, new TopApiListener() {
-                                    @Override
-                                    public void onComplete(JSONObject json) {
-                                        activity.runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                Toast.makeText(app.getApplicationContext(), "更新主图成功!", Toast.LENGTH_LONG).show();
-                                            }
-                                        });
-                                    }
-
-                                    @Override
-                                    public void onError(ApiError error) {
-                                        Log.e(TAG, error.getMsg() + error.getSubMsg());
-                                    }
-
-                                    @Override
-                                    public void onException(Exception e) {
-                                        Log.e(TAG, e.getMessage());
-                                    }
-                                });
-
-                            } else if (json.getJSONObject("error_response") != null) {
-                                activity.runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            Toast.makeText(app.getApplicationContext(), json.getJSONObject("error_response").getString("sub_msg"), Toast.LENGTH_LONG).show();
-                                        } catch (JSONException e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                });
-                            }
-                        } catch (JSONException e) {
-                            Log.e(TAG, e.getMessage());
-                        }
-                    }
-
-                    @Override
-                    public void onError(ApiError error) {
-                        Log.e(TAG, error.getErrorCode() + error.getSubCode() + error.getMsg() + error.getSubMsg());
-                    }
-
-                    @Override
-                    public void onException(Exception e) {
-                        Log.e(TAG, e.getMessage());
-                    }
-                });
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                }
             }
         }
+        return null;
     }
 }
