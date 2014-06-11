@@ -138,8 +138,7 @@ public class MainActivity extends AuthActivity {
                 convertView = LayoutInflater.from(getContext()).inflate(R.layout.list_item, parent, false);
             }
             ImageView imageView = (ImageView) convertView.findViewById(R.id.icon);
-            GetRemotePictureTask getRemotePictureTask = new GetRemotePictureTask();
-            getRemotePictureTask.execute(new ImageItem(item.getPicUrl(), imageView));
+            imageView.setImageBitmap(getBitmapById(item.getId()));
             TextView titleTextView = (TextView) convertView.findViewById(R.id.title);
             titleTextView.setText(item.getFields().get("title"));
             TextView secondLineTextView = (TextView) convertView.findViewById(R.id.secondLine);
@@ -147,50 +146,23 @@ public class MainActivity extends AuthActivity {
             return convertView;
         }
 
-        private Bitmap getBitmapFromUrl(String url) {
-            URL myFileUrl = null;
-            Bitmap bitmap = null;
+        private Bitmap getBitmapById(String id) {
+            InputStream inputStream = null;
             try {
-                myFileUrl = new URL(url);
-            } catch (MalformedURLException e) {
-                Log.e(TAG, e.getMessage());
-            }
-            try {
-                HttpURLConnection conn = (HttpURLConnection) myFileUrl.openConnection();
-                conn.setDoInput(true);
-                conn.connect();
-                InputStream is = conn.getInputStream();
-                bitmap = BitmapFactory.decodeStream(is);
-                is.close();
+                inputStream = app.getAssets().open(id + ".jpg");
+                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                return bitmap;
             } catch (IOException e) {
+                e.printStackTrace();
                 Log.e(TAG, e.getMessage());
+            } finally {
+                if (inputStream != null) {
+                    try {
+                        inputStream.close();
+                    } catch (IOException e) {}
+                }
             }
-            return bitmap;
-        }
-
-        private class GetRemotePictureTask extends AsyncTask<ImageItem, Integer, Bitmap> {
-            private ImageView imageView;
-
-            @Override
-            protected Bitmap doInBackground(ImageItem... params) {
-                this.imageView = params[0].imageView;
-                return getBitmapFromUrl(params[0].picUrl);
-            }
-
-            @Override
-            protected void onPostExecute(Bitmap bitmap) {
-                imageView.setImageBitmap(bitmap);
-            }
-        }
-
-        private class ImageItem {
-            public String picUrl;
-            public ImageView imageView;
-
-            public ImageItem(String picUrl, ImageView imageView) {
-                this.picUrl = picUrl;
-                this.imageView = imageView;
-            }
+            return null;
         }
     }
 }
