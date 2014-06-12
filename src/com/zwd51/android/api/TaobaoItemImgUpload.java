@@ -11,15 +11,13 @@ import java.io.File;
  * Created by Connor on 6/10/14.
  */
 public class TaobaoItemImgUpload {
-    public static void invoke(TopAndroidClient client, Long userId, String numIid, String filePath, TopApiListener listener) {
+    public static void invoke(TopAndroidClient client, Long userId, String numIid, String id, byte[] imageBytes, TopApiListener listener) {
         TopParameters params = new TopParameters();
         params.setMethod("taobao.item.img.upload");
         params.addParam("num_iid", numIid);
-        File file = new File(filePath);
-        if (file.exists()) {
-            FileItem image = new FileItem(file);
-            params.addAttachment("image", image);
-            client.api(params, userId, listener, true);
-        }
+        params.addParam("is_major", "true");
+        FileItem image = new FileItem(id + ".jpg", imageBytes);
+        params.addAttachment("image", image);
+        client.api(params, userId, listener, true);
     }
 }

@@ -1,7 +1,6 @@
 package com.zwd51.android.model;
 
 import android.app.Activity;
-import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
 import com.taobao.top.android.api.ApiError;
@@ -9,6 +8,7 @@ import com.taobao.top.android.api.TopApiListener;
 import com.zwd51.android.MainApplication;
 import com.zwd51.android.api.TaobaoItemAdd;
 import com.zwd51.android.api.TaobaoItemGet;
+import com.zwd51.android.api.TaobaoItemImgUpload;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -129,7 +129,7 @@ public class TaobaoItem {
 
     private void upload() {
         Toast.makeText(app.getApplicationContext(), "开始上传宝贝", Toast.LENGTH_LONG).show();
-        TaobaoItemAdd.invoke(app.getAndroidClient(), app.getUserId(), fields, id, getImageBytes(), new TopApiListener() {
+        TaobaoItemAdd.invoke(app.getAndroidClient(), app.getUserId(), fields, new TopApiListener() {
             @Override
             public void onComplete(final JSONObject json) {
                 Log.d(TAG, json.toString());
@@ -141,6 +141,42 @@ public class TaobaoItem {
                                 Toast.makeText(app.getApplicationContext(), "上传宝贝成功!", Toast.LENGTH_LONG).show();
                             }
                         });
+                        TaobaoItemImgUpload.invoke(app.getAndroidClient(), app.getUserId(),
+                                json.getJSONObject("item_add_response").getJSONObject("item").getString("num_iid"),
+                                id, getImageBytes(), new TopApiListener() {
+                                    @Override
+                                    public void onComplete(JSONObject json) {
+                                        Log.d(TAG, json.toString());
+                                        activity.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Toast.makeText(app.getApplicationContext(), "更新宝贝主图成功!", Toast.LENGTH_LONG).show();
+                                            }
+                                        });
+                                    }
+
+                                    @Override
+                                    public void onError(final ApiError error) {
+                                        Log.e(TAG, error.getErrorCode() + error.getSubCode() + error.getMsg() + error.getSubMsg());
+                                        activity.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Toast.makeText(app.getApplicationContext(), error.getErrorCode() + error.getSubCode() + error.getMsg() + error.getSubMsg(), Toast.LENGTH_LONG).show();
+                                            }
+                                        });
+                                    }
+
+                                    @Override
+                                    public void onException(final Exception e) {
+                                        Log.e(TAG, e.getMessage());
+                                        activity.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Toast.makeText(app.getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+                                            }
+                                        });
+                                    }
+                                });
                     } else if (json.getJSONObject("error_response") != null) {
                         activity.runOnUiThread(new Runnable() {
                             @Override
